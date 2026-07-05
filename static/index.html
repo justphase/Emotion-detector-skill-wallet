@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socratica | Emotion-Aware Learning Companion</title>
+    <!-- Fonts: Outfit (Display) and Plus Jakarta Sans (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <i data-lucide="brain-circuit" class="brand-icon"></i>
+                <span class="brand-name">socratica</span>
+                <span class="brand-tag">Emotion-Aware Learning Companion</span>
+            </div>
+            <div class="nav-links">
+                <a href="#workspace" class="nav-link active" id="btn-nav-workspace"><i data-lucide="layout-dashboard"></i> Workspace</a>
+                <a href="#analytics" class="nav-link" id="btn-nav-analytics"><i data-lucide="bar-chart-3"></i> Analytics</a>
+                <a href="#history" class="nav-link" id="btn-nav-history"><i data-lucide="history"></i> Session Log</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        
+        <!-- WORKSPACE VIEW -->
+        <section id="view-workspace" class="app-view active">
+            <div class="workspace-grid">
+                
+                <!-- LEFT SIDE: INPUT & CONTROLS -->
+                <div class="card input-card">
+                    <div class="card-header">
+                        <i data-lucide="pen-tool"></i>
+                        <h2>Describe Your Problem</h2>
+                    </div>
+                    
+                    <form id="predict-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="field-select">Study Subject</label>
+                            <div class="select-wrapper">
+                                <select id="field-select" required>
+                                    <option value="" disabled selected>Select a subject...</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Physics">Physics</option>
+                                    <option value="Chemistry">Chemistry</option>
+                                    <option value="Biology">Biology</option>
+                                    <option value="Computer Science">Computer Science</option>
+                                    <option value="Literature & Languages">Literature & Languages</option>
+                                    <option value="History & Social Studies">History & Social Studies</option>
+                                    <option value="Other">Other Subjects</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="select-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="problem-text">What are you struggling with?</label>
+                            <textarea id="problem-text" placeholder="Type your problem here. Be as detailed as you want. Mention what you've tried, how you're feeling, or what exactly is blocking you..." required></textarea>
+                        </div>
+
+                        <div class="control-row">
+                            <div class="toggle-group">
+                                <span class="toggle-label">
+                                    <strong>Use AI Assistant</strong>
+                                    <span class="toggle-desc">Gemini-driven empathetic response</span>
+                                </span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-use-ai" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="toggle-group">
+                                <span class="toggle-label">
+                                    <strong>Response Model</strong>
+                                    <span class="toggle-desc">Guide response by model's emotion</span>
+                                </span>
+                                <div class="segmented-control">
+                                    <input type="radio" id="model-a-select" name="selected_model" value="Model A" checked>
+                                    <label for="model-a-select">Model A (RoBERTa)</label>
+                                    <input type="radio" id="model-b-select" name="selected_model" value="Model B">
+                                    <label for="model-b-select">Model B (BiLSTM)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="btn-submit">
+                            <span class="btn-text">Analyze & Get Support</span>
+                            <span class="loader-spinner hidden" id="btn-loader"></span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- RIGHT SIDE: MODEL EVALUATION & FEEDBACK -->
+                <div class="results-column">
+                    <!-- EMPTY STATE -->
+                    <div id="results-empty" class="card empty-card">
+                        <i data-lucide="sparkles" class="empty-icon"></i>
+                        <h3>Ready for Analysis</h3>
+                        <p>Submit your problem statement to analyze your emotional state and generate a personalized, supportive response.</p>
+                    </div>
+
+                    <!-- RESULTS CONTENT (Hidden initially) -->
+                    <div id="results-content" class="hidden">
+                        
+                        <!-- FEEDBACK PANEL (HERO) -->
+                        <div class="card feedback-card">
+                            <div class="feedback-header">
+                                <div class="feedback-title">
+                                    <i data-lucide="heart-handshake" class="feedback-icon"></i>
+                                    <h3>Learning Support Response</h3>
+                                </div>
+                                <button type="button" class="btn-icon" id="btn-regenerate" title="Regenerate feedback">
+                                    <i data-lucide="refresh-cw"></i>
+                                </button>
+                            </div>
+                            <div class="feedback-body" id="feedback-text">
+                                <!-- Response text injected here -->
+                            </div>
+                        </div>
+
+                        <!-- SIDE BY SIDE COMPARISON -->
+                        <div class="comparison-grid">
+                            
+                            <!-- MODEL A CARD -->
+                            <div class="card model-card border-model-a">
+                                <div class="model-header">
+                                    <div class="model-badge label-a">Model A</div>
+                                    <h4>Pre-trained RoBERTa</h4>
+                                </div>
+                                
+                                <div class="emotion-results-wrapper">
+                                    <div class="primary-emotion-summary">
+                                        <span class="label">Primary Emotion</span>
+                                        <div class="emotion-badge-large" id="model-a-primary-badge">
+                                            <i data-lucide="smile" class="badge-emoji"></i>
+                                            <span id="model-a-primary-name">Confused</span>
+                                            <span class="badge-confidence" id="model-a-primary-conf">62%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mixed-emotions-section" id="model-a-mixed-section">
+                                        <span class="label">Secondary Emotions (≥15%)</span>
+                                        <div class="mixed-badges-container" id="model-a-mixed-container">
+                                            <!-- Mixed badges injected -->
+                                        </div>
+                                    </div>
+
+                                    <div class="probability-bars-section">
+                                        <span class="label">Emotion Confidence Breakdown</span>
+                                        <div class="bars-container" id="model-a-bars">
+                                            <!-- Mapped bars -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MODEL B CARD -->
+                            <div class="card model-card border-model-b">
+                                <div class="model-header">
+                                    <div class="model-badge label-b">Model B</div>
+                                    <h4>Custom BiLSTM</h4>
+                                </div>
+
+                                <div class="emotion-results-wrapper">
+                                    <div class="primary-emotion-summary">
+                                        <span class="label">Primary Emotion</span>
+                                        <div class="emotion-badge-large" id="model-b-primary-badge">
+                                            <i data-lucide="smile" class="badge-emoji"></i>
+                                            <span id="model-b-primary-name">Curious</span>
+                                            <span class="badge-confidence" id="model-b-primary-conf">45%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mixed-emotions-section" id="model-b-mixed-section">
+                                        <span class="label">Secondary Emotions (≥15%)</span>
+                                        <div class="mixed-badges-container" id="model-b-mixed-container">
+                                            <!-- Mixed badges injected -->
+                                        </div>
+                                    </div>
+
+                                    <div class="probability-bars-section">
+                                        <span class="label">Emotion Confidence Breakdown</span>
+                                        <div class="bars-container" id="model-b-bars">
+                                            <!-- Mapped bars -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ANALYTICS VIEW -->
+        <section id="view-analytics" class="app-view">
+            <div class="analytics-layout">
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <i data-lucide="pie-chart"></i>
+                        <h2>Overall Emotion Distribution</h2>
+                    </div>
+                    <p class="chart-subtitle">Aggregated distribution of detected primary emotions across all logged learning sessions.</p>
+                    <div class="chart-wrapper">
+                        <canvas id="emotionChart"></canvas>
+                    </div>
+                    <div class="chart-empty hidden" id="chart-empty-state">
+                        <i data-lucide="bar-chart-2"></i>
+                        <p>No logged sessions found. Try analyzing a few study problems in the Workspace to populate this graph!</p>
+                    </div>
+                </div>
+
+                <div class="card analytics-summary-card">
+                    <div class="card-header">
+                        <i data-lucide="trending-up"></i>
+                        <h2>Insights Summary</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-label">Total Sessions</span>
+                            <span class="stat-number" id="stat-total-sessions">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Top Emotion Mapped</span>
+                            <span class="stat-number" id="stat-top-emotion">-</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">AI Responses Generated</span>
+                            <span class="stat-number" id="stat-ai-count">0</span>
+                        </div>
+                    </div>
+                    <div class="insights-notes">
+                        <h3>Understanding Your Learning States</h3>
+                        <p>Emotion-aware learning logs show how learning states fluctuate. High occurrences of <strong>Confused</strong> and <strong>Curious</strong> are positive signals of active learning. Frequent <strong>Frustrated</strong> states indicate areas where additional tutoring or simplified resources may be beneficial.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HISTORY VIEW -->
+        <section id="view-history" class="app-view">
+            <div class="card history-card">
+                <div class="card-header history-header-row">
+                    <div class="header-left">
+                        <i data-lucide="list"></i>
+                        <h2>Session Log History</h2>
+                    </div>
+                    <span class="log-count" id="log-count-badge">0 logs found</span>
+                </div>
+                
+                <div class="table-container">
+                    <table class="history-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Subject</th>
+                                <th>Problem Description</th>
+                                <th>Model A (Primary)</th>
+                                <th>Model B (Primary)</th>
+                                <th>Selected Model</th>
+                                <th>Response Mode</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="table-empty hidden" id="table-empty-state">
+                        <i data-lucide="inbox"></i>
+                        <p>No logs found. Session entries will appear here after you analyze problem statements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 Socratica Companion. Developed for today's hackathon deadline.</p>
+    </footer>
+
+    <!-- Script Entrypoint -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+/.env
+/bilstm_model.pth
+/vocab.json
+/logs.csv

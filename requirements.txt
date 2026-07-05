@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+transformers
+torch
+datasets
+python-dotenv
+google-generativeai
+pandas
