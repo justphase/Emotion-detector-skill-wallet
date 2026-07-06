@@ -143,3 +143,84 @@ main views accessible from the top navigation bar: **Workspace**, **Analytics**,
 - All interactive elements have visible keyboard focus states.
 - Emotions are distinguished by icon + label in addition to color, not color alone.
 ---
+
+## Entity Relationship (ER) Diagram
+
+**Entities:**
+- **Session**: id, timestamp, field/subject, problem_text, selected_model, response
+- **Prediction**: session_id (FK), model_name, primary_emotion, primary_confidence, all_emotions (JSON), mixed_emotions (JSON)
+
+**Relationship:** One Session → Two Predictions (one per model: RoBERTa and BiLSTM).
+Each Session stores exactly one final response (Gemini-generated or fallback),
+while Predictions capture what each individual model detected, enabling the
+side-by-side model comparison feature.
+
+```
+Session (1) ────< Prediction (many, exactly 2 per session: RoBERTa + BiLSTM)
+```
+
+---
+
+## Unified Prediction Schema & Backend Integration (Epics 3 & 4)
+
+**Prediction schema** — both models (`RoBERTa` and `BiLSTM`) return this exact
+structure from the emotion detection module, so the rest of the app (API, UI,
+logging) never needs to know which model produced a result:
+
+```json
+{
+  "primary_emotion": "Confused",
+  "primary_confidence": 0.62,
+  "all_emotions": {"Bored": 0.02, "Confident": 0.05, "Confused": 0.62, "Curious": 0.18, "Frustrated": 0.13},
+  "mixed_emotions": [["Curious", 0.18]]
+}
+```
+A "mixed emotion" is any entry in `all_emotions` other than the primary one whose
+confidence is ≥ 0.15.
+
+**Backend API:**
+- `POST /predict` — accepts `{field, problem_text}`, runs both models, returns both
+  prediction objects (schema above) without generating a Gemini response yet, so the
+  UI can render the comparison immediately.
+- `POST /generate` — accepts `{field, problem_text, emotion_result, use_ai}`. If
+  `use_ai` is true, builds a prompt from the field, problem text, and the selected
+  model's detected emotion/confidence, and calls the Gemini API. If the call fails or
+  `use_ai` is false, falls back to a template response selected by primary emotion
+  (see fallback templates in `utils/gemini_utils.py`).
+- `POST /log` — appends the full session (inputs, both predictions, selected model,
+  final response, timestamp) to the session store (CSV/SQLite).
+- `GET /sessions` — returns logged sessions for the Analytics view.
+
+**Regeneration logic:** Changing the input text or toggling "Use AI Assistant"
+triggers a fresh call to `/generate` only (not `/predict` again, unless the problem
+text itself changed) — this keeps displayed emotion scores in sync with whichever
+response is currently shown, while avoiding redundant model inference calls.
+
+**Fallback templates:** Each of the 5 emotions maps to a short, non-AI-generated
+supportive message template (e.g. Confused → "It's okay to feel stuck — try
+breaking the problem into smaller steps and revisiting the basics of [field]."),
+used whenever Gemini is unavailable, so the app never leaves the user with no
+response.
+
+---
+
+## End-to-End Validation & Deployment Readiness (Epic 6)
+
+**Manual validation checklist (run before submission):**
+- [ ] Submitting a problem returns both model predictions within a few seconds
+- [ ] Mixed emotions display correctly when a secondary emotion is ≥15%
+- [ ] Toggling "Use AI Assistant" off shows a template response, not an error
+- [ ] Toggling it back on and clicking Regenerate produces a fresh Gemini response
+- [ ] Switching the "model selector" changes which model's emotion drives the response
+- [ ] Session Log tab shows the just-submitted session
+- [ ] Analytics tab chart updates after new sessions are logged
+- [ ] Missing/invalid Gemini API key shows a clear inline error, not a crash
+
+**Deployment readiness notes:**
+- `.env` must never be committed — confirm `.gitignore` includes it.
+- `requirements.txt` should be pinned to versions actually used, to avoid
+  environment mismatches when teammates or the mentor run it locally.
+- If deploying (e.g. Render/Railway) instead of just running locally for the demo,
+  set `GEMINI_API_KEY` as an environment variable in the hosting platform's
+  dashboard rather than uploading `.env`.
+
