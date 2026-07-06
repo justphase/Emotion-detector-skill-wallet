@@ -146,18 +146,67 @@ main views accessible from the top navigation bar: **Workspace**, **Analytics**,
 
 ## Entity Relationship (ER) Diagram
 
-**Entities:**
-- **Session**: id, timestamp, field/subject, problem_text, selected_model, response
-- **Prediction**: session_id (FK), model_name, primary_emotion, primary_confidence, all_emotions (JSON), mixed_emotions (JSON)
+The following diagram illustrates the relationship between users and their emotion records, providing a robust design for user-scoped session logging and support:
 
-**Relationship:** One Session → Two Predictions (one per model: RoBERTa and BiLSTM).
-Each Session stores exactly one final response (Gemini-generated or fallback),
-while Predictions capture what each individual model detected, enabling the
-side-by-side model comparison feature.
+```mermaid
+erDiagram
+    Users {
+        varchar email PK
+        varchar name
+        varchar password
+        enum role "student, educator, admin"
+        int login_count
+        datetime created_at
+    }
 
+    Emotion_Records {
+        varchar record_id PK
+        varchar email FK
+        varchar field
+        text input_text
+        enum predicted_emotion "Bored, Confident, Confused, Curious, Frustrated"
+        enum secondary_emotion "Bored, Confident, Confused, Curious, Frustrated, NULL"
+        decimal confidence_score "e.g., 95.60"
+        enum model_used "BiLSTM, BERT"
+        text ai_response
+        enum response_type "Gemini AI, Template"
+        json emotion_scores "All emotion probabilities"
+        datetime timestamp
+        boolean csv_logged
+    }
+
+    Users ||--o{ Emotion_Records : "generates / creates"
 ```
-Session (1) ────< Prediction (many, exactly 2 per session: RoBERTa + BiLSTM)
-```
+
+### Entities Description
+
+#### 1. **Users**
+*   `email` (PK, `VARCHAR(255)`): Unique identifier for each user.
+*   `name` (`VARCHAR(100)`): Display name of the user.
+*   `password` (`VARCHAR(255)`): Hashed credentials.
+*   `role` (`ENUM`): User role restriction (`student`, `educator`, `admin`).
+*   `login_count` (`INT`): Track user interaction and active frequency.
+*   `created_at` (`DATETIME`): Session account creation timestamp.
+
+#### 2. **Emotion_Records**
+*   `record_id` (PK, `VARCHAR(36)`): Unique identifier for each logged analysis session.
+*   `email` (FK, `VARCHAR(255)`): References `Users.email` to map each session back to the student.
+*   `field` (`VARCHAR(100)`): Selected study subject.
+*   `input_text` (`TEXT`): Student's description of their problem.
+*   `predicted_emotion` (`ENUM`): Primary classified emotion (`Bored`, `Confident`, `Confused`, `Curious`, `Frustrated`).
+*   `secondary_emotion` (`ENUM`): Secondary classified emotion (`Bored`, `Confident`, `Confused`, `Curious`, `Frustrated`, or `NULL`).
+*   `confidence_score` (`DECIMAL(5,2)`): Classification confidence percentage (e.g., 95.60).
+*   `model_used` (`ENUM`): Model driving the response (`BiLSTM`, `BERT`).
+*   `ai_response` (`TEXT`): Empathetic support response text.
+*   `response_type` (`ENUM`): Generation mode (`Gemini AI`, `Template`).
+*   `emotion_scores` (`JSON`): Complete distribution probability mapping of all 5 target emotions.
+*   `timestamp` (`DATETIME`): Date and time of the logging event.
+*   `csv_logged` (`BOOLEAN`): Sync verification flag.
+
+### Key Details & Use Cases
+*   **1-to-Many Relationship**: One User can generate many Emotion Records, but each Emotion Record belongs to exactly one User (`Users (1) ───< Emotion_Records (N)`).
+*   **Supported Use Cases**: User registration/auth, side-by-side classification predictions, mixed-emotion analyses, response generation logging, CSV/database exporting, and session history queries.
+*   **Scalability & Cloud Fit**: Easily maps to relational databases (PostgreSQL, MySQL) or document stores (MongoDB, Firestore), allowing user-based historical analysis and analytics.
 
 ---
 
