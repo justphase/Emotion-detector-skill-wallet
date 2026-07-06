@@ -171,3 +171,29 @@ User Input
 # 📄 License
 
 This project is intended for educational and research purposes.
+## Links
+- *Live Demo*: https://huggingface.co/spaces/crazyaadi/socratica-companion
+- *GitHub Repository*: https://github.com/justphase/Emotion-detector-skill-wallet
+- *Dataset Used*: GoEmotions (Hugging Face) — https://huggingface.co/datasets/go_emotions
+- *Pre-trained Model*: RoBERTa fine-tuned on GoEmotions — https://huggingface.co/SamLowe/roberta-base-go_emotions
+- *Gemini API Documentation*: https://ai.google.dev/gemini-api/docs
+
+## Conclusion
+The AI-Driven Emotion Detection & Personalized Learning Support Platform successfully
+demonstrates how deep learning-based emotion classification can be combined with
+generative AI to deliver real-time, empathetic academic support. By comparing a
+pre-trained transformer model (RoBERTa) against a lightweight custom-trained BiLSTM,
+the platform highlights the trade-off between accuracy and training cost — a key
+consideration in real-world ML deployment.
+
+The system detects both primary and secondary (mixed) emotional states from a
+learner's free-text input, and uses this signal to generate contextual, field-aware
+guidance via the Gemini API, with a graceful template-based fallback when AI
+generation is unavailable. Session logging and analytics further support the
+platform's goal of enabling continuous learning and long-term insight into a
+learner's emotional patterns over time.
+
+This project reinforced practical skills across the ML lifecycle — data preparation,
+model comparison, prompt engineering, and full-stack integration — while working
+under real time constraints, mirroring the kind of trade-offs made in production
+AI systems.
