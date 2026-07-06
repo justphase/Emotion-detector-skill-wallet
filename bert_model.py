@@ -1,5 +1,4 @@
 from transformers import pipeline
-import numpy as np
 
 # Define the 5 target emotions in alphabetical order
 EMOTIONS = ["Bored", "Confident", "Confused", "Curious", "Frustrated"]

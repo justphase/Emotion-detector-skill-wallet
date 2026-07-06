@@ -158,7 +158,7 @@ def predict_endpoint(req: PredictRequest):
         model_a_res = {
             "primary_emotion": "Confused",
             "primary_confidence": 0.0,
-            "all_emotions": {e: 0.0 for e in EMOTIONS},
+            "all_emotions": {em: 0.0 for em in EMOTIONS},
             "mixed_emotions": []
         }
 
@@ -169,7 +169,7 @@ def predict_endpoint(req: PredictRequest):
         model_b_res = {
             "primary_emotion": "Confused",
             "primary_confidence": 0.0,
-            "all_emotions": {e: 0.0 for e in EMOTIONS},
+            "all_emotions": {em: 0.0 for em in EMOTIONS},
             "mixed_emotions": []
         }
 

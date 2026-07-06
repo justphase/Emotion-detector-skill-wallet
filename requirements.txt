@@ -1,8 +1,8 @@
 fastapi
 uvicorn
+pydantic
 transformers
 torch
 datasets
 python-dotenv
 google-generativeai
-pandas

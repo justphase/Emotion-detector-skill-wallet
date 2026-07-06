@@ -968,6 +968,17 @@ input:checked + .slider:before {
     background-color: var(--color-surface);
 }
 
+/* SUBJECT TAG (History Table) */
+.subject-tag {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
 .hidden {
     display: none !important;
 }

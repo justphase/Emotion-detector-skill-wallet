@@ -2,3 +2,5 @@
 /bilstm_model.pth
 /vocab.json
 /logs.csv
+__pycache__/
+*.pyc
