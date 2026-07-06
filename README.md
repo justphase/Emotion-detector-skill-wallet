@@ -38,11 +38,31 @@ This project was built to address all PRD constraints, avoiding default Streamli
 
 ---
 
-## Setup & Running Instructions
-
-### Prerequisites
+## Prerequisites
 - Python 3.12+ (Tested on Python 3.14)
 - Pip package manager
+
+---
+
+## Project Flow
+ 
+1. User selects a study subject and describes their problem in free text.
+2. On clicking "Analyze & Get Support", the input is sent to the backend `/predict` endpoint.
+3. Two models independently classify the emotion: a pre-trained RoBERTa model and a
+   custom-trained lightweight BiLSTM — both return the same structured prediction format
+   (primary emotion, confidence, all emotion scores, mixed/secondary emotions ≥15%).
+4. Results from both models are displayed side by side for comparison.
+5. If the "Use AI Assistant" toggle is on, the detected emotion + subject + problem text
+   are sent to the Gemini API to generate an empathetic, field-specific response;
+   otherwise a template-based fallback response is shown.
+6. Every interaction (inputs, both models' predictions, selected response) is logged
+   to a session file for later analysis.
+7. The Analytics tab visualizes emotion trends across all logged sessions using charts.
+---
+
+
+
+## Setup & Running Instructions
 
 ### 1. Clone & Set Up the Environment
 Open a terminal in the project folder and run the following:
@@ -83,3 +103,43 @@ The GoEmotions source labels are mapped to Socratica's 5 target emotions as foll
 - **Frustrated**: `annoyance`, `anger`, `disapproval`
 
 *Mixed Emotion Detection*: Any target emotion (other than the primary top-scoring emotion) with a confidence score greater than or equal to **15%** is categorized as a secondary emotion.
+
+## Epic 5. Streamlit UI Implementation
+ 
+The frontend is built with plain HTML/CSS/JS (no framework), organized into three
+main views accessible from the top navigation bar: **Workspace**, **Analytics**, and
+**Session Log**.
+ 
+**Workspace view — layout and sections:**
+- *Input panel (left)*: Study subject dropdown, free-text problem textarea, "Use AI
+  Assistant" toggle, model selector (RoBERTa / BiLSTM) for which model's emotion drives
+  the response, and the "Analyze & Get Support" submit button.
+- *Response panel (top right)*: Displays the generated learning support response, with
+  a manual "Regenerate" icon button to re-run generation without re-submitting the form.
+- *Model comparison panel (bottom right)*: Two cards, one per model, each showing the
+  primary emotion (with icon + confidence %), secondary/mixed emotions (≥15%
+  confidence), and a confidence breakdown bar chart for all 5 emotions.
+**Design system:**
+- Each of the 5 emotions has one fixed color used consistently across badges, chart
+  bars, and card accents (not a decorative gradient) — this makes the same emotion
+  instantly recognizable everywhere in the UI.
+- Form controls show clear loading states (spinner on the submit button) while
+  waiting on the `/predict` and Gemini response calls, and inline error messages if
+  a call fails (e.g. missing/invalid Gemini API key) instead of failing silently.
+**Session state handling:**
+- The last submitted input, both models' results, and the current response are kept
+  in front-end state so switching between Workspace/Analytics/Session Log tabs does
+  not lose the current result.
+- Toggling "Use AI Assistant" or changing the input triggers a regeneration request
+  without re-running the emotion classification twice unnecessarily — classification
+  results are cached client-side until the input text actually changes.
+**Analytics view:**
+- Built with Chart.js, reading from the session log (CSV/SQLite) via a `/sessions`
+  endpoint.
+- Shows an emotion-distribution chart (count of each primary emotion detected across
+  all past sessions) so trends over time are visible at a glance.
+**Responsiveness & accessibility:**
+- Layout collapses to a single column below ~768px width.
+- All interactive elements have visible keyboard focus states.
+- Emotions are distinguished by icon + label in addition to color, not color alone.
+---
